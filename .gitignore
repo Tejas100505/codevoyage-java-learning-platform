@@ -1,0 +1,80 @@
+# ==============================================================================
+# CodeVoyage — Global .gitignore
+# ==============================================================================
+
+# Environment & Secrets (NEVER COMMIT SENSITIVE KEYS)
+.env
+.env.*
+!.env.example
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
+
+# Dependency Directories
+node_modules/
+**/node_modules/
+
+# Java Build Output (Maven)
+target/
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Frontend & TypeScript Build Output
+dist/
+**/dist/
+build/
+**/build/
+.tsbuildinfo
+
+# Local Databases, H2 Data & Storage
+backend/data/
+*.mv.db
+*.trace.db
+postgres_data/
+
+# Logs & Debug Output
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Temporary Scratch Files & Local Build Scripts
+scratch/
+.tmp/
+tmp/
+~$*
+*.tmp
+
+# Operating System Metadata
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE & Editor Configurations
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+bin/
+
+# Execution Sandbox Ephemeral Run Folders
+**/codevoyage_sandbox/

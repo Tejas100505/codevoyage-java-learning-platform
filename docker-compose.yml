@@ -1,0 +1,84 @@
+name: codevoyage
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: codevoyage-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-codevoyage_db}
+      POSTGRES_USER: ${POSTGRES_USER:-codevoyage_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-codevoyage_dev_secret_2026}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-codevoyage_admin} -d ${POSTGRES_DB:-codevoyage_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codevoyage-network
+
+  execution-service:
+    build:
+      context: ./execution-service
+      dockerfile: Dockerfile
+    container_name: codevoyage-execution-service
+    restart: unless-stopped
+    environment:
+      PORT: 5050
+      EXECUTION_TIMEOUT_MS: 5000
+    ports:
+      - "${EXECUTION_SERVICE_PORT:-5050}:5050"
+    networks:
+      - codevoyage-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: codevoyage-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-codevoyage_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-codevoyage_admin}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-codevoyage_dev_secret_2026}
+      JWT_SECRET: ${JWT_SECRET:-super_secret_space_voyage_jwt_signing_key_at_least_256_bits_long_for_security_2026!}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      EXECUTION_SERVICE_URL: http://execution-service:5050
+      SERVER_PORT: 8080
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      execution-service:
+        condition: service_started
+    networks:
+      - codevoyage-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: codevoyage-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: http://localhost:${BACKEND_PORT:-8080}/api/v1
+    ports:
+      - "${VITE_PORT:-5173}:80"
+    depends_on:
+      - backend
+    networks:
+      - codevoyage-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  codevoyage-network:
+    driver: bridge
